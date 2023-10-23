@@ -1,0 +1,41 @@
+version: '3.2'
+
+services:
+
+# The Application
+  php-apache:
+    container_name: php-apache
+    build:
+        context:  ./apache
+        dockerfile: Dockerfile
+    depends_on:
+      - mongodb
+    volumes:
+        - ${APP_DATA_PATH}/payment-form:/var/www/html/
+    ports:
+        - 5000:80
+
+  #workspace
+  workspace:
+    build:
+      context: ./workspace
+    container_name: ${WORKSPACE_NAME}
+    restart: always
+    volumes:
+      - ${APP_DATA_PATH}:/var/www/
+      - ./workspace/supervisord.d/:/etc/supervisor/supervisord.d/
+
+  # mongodb
+  mongodb:
+    build: ./mongodb
+    container_name: ${MONGO_NAME}
+    restart: always
+    volumes:
+      - ./mongodb/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - ${MONGO_DATA_PATH}:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dev
+      MONGO_INITDB_ROOT_PASSWORD: *****
+      MONGO_INITDB_DATABASE: *****
+    ports:
+      - ${MONGO_PORTS}:27017
