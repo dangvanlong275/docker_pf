@@ -3,11 +3,9 @@ FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /var/www
 
-RUN apt-get update && apt-get install -y curl\
+RUN apt-get update && apt-get install -y curl \
     git \
     php7.4 \
-    nodejs \ 
-    npm \
     nano \
     supervisor \
     php7.4-mysql \
@@ -19,12 +17,24 @@ RUN apt-get update && apt-get install -y curl\
     php7.4-xdebug \
     cron && which cron && \
     rm -rf /etc/cron.*/*  \
-    zlib1g-dev  
+    zlib1g-dev
 
 #Intall composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Install node
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
+
 USER root
 
-COPY supervisord.conf /etc/supervisor/supervisord.conf
-CMD ["/usr/bin/supervisord"]
+# CRONTAB
+COPY ./cron/* /etc/cron.d/
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/*
+# Apply cron job
+RUN crontab /etc/cron.d/*
+# Create the log file to be able to run tail
+RUN touch /var/log/cron.log
+# Run the command on container startup
+CMD cron && tail -f /var/log/cron.log

@@ -1,14 +1,14 @@
 set -e
 
-mongo <<EOF
-db = db.getSiblingDB('payment-form')
+mongosh -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin <<EOF
+db = db.getSiblingDB("${MONGO_INITDB_DATABASE}")
 db.createUser({
-    user: "dev", 
-    pwd: "Rabiloo@123", 
+    user: "${MONGO_INITDB_ROOT_USERNAME}", 
+    pwd: "${MONGO_INITDB_ROOT_PASSWORD}", 
     roles: [
         {
             role:"readWrite", 
-            db:"payment-form"
+            db:"${MONGO_INITDB_DATABASE}"
         }
     ]
 })
